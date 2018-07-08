@@ -1,0 +1,76 @@
+#include <SoftwareSerial.h>
+
+SoftwareSerial SIM900(2, 3); 
+
+char incoming_char=0; 
+int led = 13;
+int led_status = 0;     
+void setup() {                
+  pinMode(led, OUTPUT);
+  Serial.begin(19200);
+ SIM900.begin(19200); 
+ delay(20000); 
+ SIM900.print("AT+CMGF=1\r"); 
+ delay(100);
+ SIM900.println("AT+CNMI=2,2,0,0,0\r"); 
+ SIM900.print("AT+CLIP=1\r"); 
+ delay(100); 
+ digitalWrite(led, LOW);  
+ Serial.println("AT+CMGD=1,4"); //Del SMS 
+}
+
+void sendSMS(char led_status){  
+ int a=int(led_status);          
+ SIM900.print("AT+CMGF=1\r");             
+ delay(1000);
+ SIM900.println("AT + CMGS = \"+918870278869\""); 
+ delay(1000);
+ if(a==1){
+ SIM900.println("Status : On");
+ delay(1000);
+ }
+ else{
+  SIM900.println("Status : Off");
+  delay(1000);
+  }
+ SIM900.println((char)26);
+ delay(1000); 
+ SIM900.println();
+ delay(5000);       
+}
+
+
+void loop() {
+if(SIM900.available() >0)
+{
+incoming_char=SIM900.read(); 
+if (incoming_char=='#')
+  {
+  delay(10);
+  incoming_char=SIM900.read(); 
+
+
+  if (incoming_char=='a')
+    {
+  delay(10);
+  incoming_char=SIM900.read();
+
+if (incoming_char=='0')
+  {
+  digitalWrite(led, LOW);
+  } 
+else if (incoming_char=='1')
+  {
+  digitalWrite(led, HIGH);
+  }
+else if (incoming_char=='s')
+  {
+  digitalRead(led);
+  led_status=digitalRead(led);
+  Serial.print(led_status);
+  sendSMS(led_status);
+  }
+delay(10);
+     }
+   }
+}
